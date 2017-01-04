@@ -1,0 +1,3 @@
+TrainQuery when is the next train at {Station}
+TrainQuery for next train at {Station}
+TrainQuery when is the next train for {Station}
