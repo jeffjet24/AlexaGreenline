@@ -1,0 +1,24 @@
+Target Field
+Warehouse District
+Hennepin Avenue
+Stadium Village
+Prospect Park
+U.S. Bank Stadium
+Westgate
+Nicollet Mall
+Government Plaza
+West Bank
+East Bank
+Raymond
+Fairview
+Snelling
+Hamline
+Lexington
+Victoria
+Dale
+Western Avenue
+Capitol Rice
+Robert Street
+Tenth Street
+Central
+Union Depot
