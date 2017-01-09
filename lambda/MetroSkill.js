@@ -4,6 +4,11 @@ var http = require('http');
 const METRO_API_HOST = "svc.metrotransit.org";
 const METRO_API_PATH = "/nextrip/902/";
 const METRO_API_ARGS = "?format=json";
+const HOME_TRAIN_STATION = {
+  "name": "Westgate",
+  "e": "WGAT",
+  "w": "WGAT"
+};
 const STATION_CODES = {
   "TargetField":{"e":"TF12","w":"TF11"},
   "WarehouseDistrict":{"e":"WAR2","w":"WAR1"},
@@ -169,7 +174,7 @@ function getNextTrains(intent, session, callback) {
     const shouldEndSession = true;
     let speechOutput = '';
 
-    if (Station) {
+    if (Station.value) {
         const stationName = getStationName(Station.value);
         cardTitle = cardTitle + Station.value;
         var eastStation = STATION_CODES[stationName].e;
@@ -253,6 +258,89 @@ function getNextTrains(intent, session, callback) {
     }
 }
 
+function getNextHomeTrains(callback) {
+    var cardTitle = "Train Times - " + HOME_TRAIN_STATION.name;
+
+    let repromptText = '';
+    let sessionAttributes = {};
+    const shouldEndSession = true;
+    let speechOutput = '';
+
+    var eastStation = HOME_TRAIN_STATION.e;
+    var westStation = HOME_TRAIN_STATION.w;
+
+    var eastPromise = new Promise(function(resolve, reject){
+      var apiResult = httpGet(2, eastStation, function(jsonResult){
+        if(jsonResult.length === 0){
+          reject([]);
+        }
+
+        if(jsonResult.length <= 2){
+          resolve(jsonResult);
+        } else {
+          resolve(jsonResult.slice(0,2));
+        }
+      });
+    });
+
+    var westPromise = new Promise(function(resolve, reject){
+      var apiResult = httpGet(3, westStation, function(jsonResult){
+        if(jsonResult.length === 0){
+          reject([]);
+        }
+
+        if(jsonResult.length <= 2){
+          resolve(jsonResult);
+        } else {
+          resolve(jsonResult.slice(0,2));
+        }
+      });
+    });
+
+    Promise.all([eastPromise, westPromise]).then(function(nextTrains){
+      console.log(JSON.stringify(nextTrains));
+
+      var eastboundMessage = "The Next eastbound trains for the " + HOME_TRAIN_STATION.name + " Station is ";
+      if(nextTrains[0][0].DepartureText.toLowerCase().includes("min")){
+          eastboundMessage = eastboundMessage + "in " + nextTrains[0][0].DepartureText.toLowerCase().replace("min", "minutes") + " ";
+      } else {
+          eastboundMessage = eastboundMessage + "at " + nextTrains[0][0].DepartureText.toLowerCase() + " ";
+      }
+
+      eastboundMessage = eastboundMessage + "and ";
+
+      if(nextTrains[0][1].DepartureText.toLowerCase().includes("min")){
+          eastboundMessage = eastboundMessage + "in " + nextTrains[0][1].DepartureText.toLowerCase().replace("min", "minutes") + ". ";
+      } else {
+          eastboundMessage = eastboundMessage + "at " + nextTrains[0][1].DepartureText.toLowerCase() + ". ";
+      }
+
+
+      var westboundMessage = "The Next westbound trains for the " + HOME_TRAIN_STATION.name + " Station is ";
+
+      if(nextTrains[1][0].DepartureText.toLowerCase().includes("min")){
+          westboundMessage = westboundMessage + "in " + nextTrains[1][0].DepartureText.toLowerCase().replace("min", "minutes") + " ";
+      } else {
+          westboundMessage = westboundMessage + "at " + nextTrains[1][0].DepartureText.toLowerCase() + " ";
+      }
+
+      westboundMessage = westboundMessage + "and ";
+
+      if(nextTrains[1][1].DepartureText.toLowerCase().includes("min")){
+          westboundMessage = westboundMessage + "in " + nextTrains[1][1].DepartureText.toLowerCase().replace("min", "minutes") + ". ";
+      } else {
+          westboundMessage = westboundMessage + "at " + nextTrains[1][1].DepartureText.toLowerCase() + ".";
+      }
+
+      speechOutput = eastboundMessage + westboundMessage;
+      repromptText = null;
+      callback({},
+          buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+
+    });
+}
+
+
 
 // --------------- Events -----------------------
 
@@ -283,14 +371,16 @@ function onIntent(intentRequest, session, callback) {
     const intentName = intentRequest.intent.name;
 
     // Dispatch to your skill's intent handlers
-    if (intentName === 'TrainQuery') {
-        getNextTrains(intent, session, callback);
+    if (intentName === 'StationQuery') {
+      getNextTrains(intent, session, callback);
+    } else if (intentName === 'HomeQuery'){
+      getNextHomeTrains(callback);
     } else if (intentName === 'AMAZON.HelpIntent') {
-        getWelcomeResponse(callback);
+      getWelcomeResponse(callback);
     } else if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
-        handleSessionEndRequest(callback);
+      handleSessionEndRequest(callback);
     } else {
-        throw new Error('Invalid intent');
+      throw new Error('Invalid intent');
     }
 }
 

@@ -1,3 +1,6 @@
-TrainQuery when is the next train at {Station}
-TrainQuery for next train at {Station}
-TrainQuery when is the next train for {Station}
+StationQuery when is the next train at {Station}
+StationQuery for next train at {Station}
+StationQuery when is the next train for {Station}
+StationQuery {Station}
+HomeQuery when is the next train
+HomeQuery when does the next train come

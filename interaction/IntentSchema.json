@@ -1,13 +1,16 @@
 {
   "intents": [
     {
-      "intent": "TrainQuery",
+      "intent": "StationQuery",
       "slots": [
         {
           "name":"Station",
           "type": "STATION"
         }
       ]
+    },
+    {
+      "intent": "HomeQuery"
     }
   ]
 }
